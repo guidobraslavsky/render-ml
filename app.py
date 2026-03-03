@@ -13,7 +13,10 @@ def send_telegram(message):
         "chat_id": CHAT_ID,
         "text": message
     }
-    requests.post(url, json=payload)
+    try:
+        requests.post(url, json=payload)
+    except Exception as e:
+        print("Telegram error:", e)
 
 def send_photo(photo_url):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
