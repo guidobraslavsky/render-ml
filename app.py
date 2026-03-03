@@ -2,41 +2,29 @@ from flask import Flask, request, jsonify
 import requests
 import os
 
-SECRET_KEY = os.environ.get("FORM_SECRET")
-app = Flask(__name__)   # 👈 ESTO DEBE ESTAR ANTES DE USAR @app.route
+app = Flask(__name__)
 
+SECRET_KEY = os.environ.get("FORM_SECRET")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-    try:
-        requests.post(url, json=payload, timeout=5)
-    except Exception as e:
-        print("Telegram error:", e)
+    payload = {"chat_id": CHAT_ID, "text": message}
+    requests.post(url, json=payload, timeout=5)
 
 def send_photo(photo_url):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
-    payload = {
-        "chat_id": CHAT_ID,
-        "photo": photo_url
-    }
-    requests.post(url, json=payload)
-
-@app.route("/")
-def home():
-    return "Service running", 200
+    payload = {"chat_id": CHAT_ID, "photo": photo_url}
+    requests.post(url, json=payload, timeout=5)
 
 @app.route("/complaint", methods=["POST"])
 def complaint():
-    if request.headers.get("X-API-KEY") != SECRET_KEY:
-        return jsonify({"error": "Unauthorized"}), 403
-        
     data = request.json
+
+    # 🔐 Validación de seguridad
+    if data.get("secret") != SECRET_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
 
     message = f"""
 🚨 NUEVO RECLAMO
