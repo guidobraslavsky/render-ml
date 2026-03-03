@@ -1,20 +1,3 @@
-from flask import Flask, request, jsonify
-import requests
-import os
-
-app = Flask(__name__)
-
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
-
-def send_telegram(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-    requests.post(url, json=payload)
-
 @app.route("/complaint", methods=["POST"])
 def complaint():
     data = request.json
@@ -34,8 +17,17 @@ def complaint():
 
     send_telegram(message)
 
+    # Enviar fotos si existen
+    fotos = data.get("fotos", [])
+    for foto in fotos:
+        send_photo(foto)
+
     return jsonify({"status": "ok"}), 200
 
-@app.route("/")
-def home():
-    return "Service running", 200
+def send_photo(photo_url):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+    payload = {
+        "chat_id": CHAT_ID,
+        "photo": photo_url
+    }
+    requests.post(url, json=payload)
