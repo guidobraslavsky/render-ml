@@ -1,56 +1,11 @@
-from flask import Flask, request, jsonify, render_template
-import requests
-import os
+from flask import Flask
+from routes.complaints_routes import complaint_bp
+from database import init_db
 
 app = Flask(__name__)
 
-SECRET_KEY = os.environ.get("FORM_SECRET")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+init_db()
+app.register_blueprint(complaint_bp)
 
-def send_telegram(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": message}
-    requests.post(url, json=payload, timeout=5)
-
-def send_photo(photo_url):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
-    payload = {"chat_id": CHAT_ID, "photo": photo_url}
-    requests.post(url, json=payload, timeout=5)
-
-@app.route("/")
-def form():
-    return render_template("form.html")
-
-@app.route("/complaint", methods=["POST"])
-def complaint():
-    data = request.json
-
-    # 👇 DEBUG TEMPORAL
-    print("Header recibido:", request.headers.get("X-Secret-Key"))
-    print("Secret real:", SECRET_KEY)
-
-    # 🔐 Validación de seguridad
-    if request.headers.get("X-Secret-Key") != SECRET_KEY:
-        return jsonify({"error": "Unauthorized"}), 403
-
-    message = f"""
-🚨 NUEVO RECLAMO
-
-👤 Nombre: {data.get('nombre')}
-📦 Pedido ML: {data.get('pedido_ml')}
-📱 Contacto: {data.get('contacto')}
-📦 Producto: {data.get('producto')}
-⚠ Tipo: {data.get('tipo')}
-
-📝 Descripción:
-{data.get('descripcion')}
-"""
-
-    send_telegram(message)
-
-    fotos = data.get("fotos", [])
-    for foto in fotos:
-        send_photo(foto)
-
-    return jsonify({"status": "ok"}), 200
+if __name__ == "__main__":
+    app.run(debug=True)
