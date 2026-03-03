@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import requests
 import os
 
+SECRET_KEY = os.environ.get("FORM_SECRET")
 app = Flask(__name__)   # 👈 ESTO DEBE ESTAR ANTES DE USAR @app.route
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -32,6 +33,9 @@ def home():
 
 @app.route("/complaint", methods=["POST"])
 def complaint():
+    if request.headers.get("X-API-KEY") != SECRET_KEY:
+        return jsonify({"error": "Unauthorized"}), 403
+        
     data = request.json
 
     message = f"""
