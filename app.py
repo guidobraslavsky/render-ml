@@ -14,7 +14,7 @@ def send_telegram(message):
         "text": message
     }
     try:
-        requests.post(url, json=payload)
+        requests.post(url, json=payload, timeout=5)
     except Exception as e:
         print("Telegram error:", e)
 
