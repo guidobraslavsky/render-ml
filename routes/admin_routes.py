@@ -15,6 +15,11 @@ def admin_login():
         admin_user = os.environ.get("ADMIN_USER")
         admin_password = os.environ.get("ADMIN_PASSWORD")
 
+        print("Usuario ingresado:", username)
+        print("Password ingresado:", password)
+        print("ADMIN_USER:", admin_user)
+        print("ADMIN_PASSWORD:", admin_password)
+
         if username == admin_user and password == admin_password:
             session["admin_logged"] = True
             return redirect("/admin")

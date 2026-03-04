@@ -1,58 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Panel Reclamos</title>
+
     <style>
         body {
-            font-family: Arial;
-            padding: 30px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
             background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .logout {
+            background: #ef4444;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .stats {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .search {
+            margin-bottom: 15px;
+        }
+
+        .search input {
+            width: 250px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
         }
 
         th {
             background: #2563eb;
             color: white;
+            text-align: left;
+            padding: 12px;
+            font-size: 14px;
         }
 
-        .resuelto {
-            color: green;
-            font-weight: bold;
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f9fafb;
         }
 
         .pendiente {
-            color: red;
-            font-weight: bold;
+            color: #ef4444;
+            font-weight: 600;
         }
 
-        a.button {
+        .resuelto {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .button {
             background: #16a34a;
             color: white;
             padding: 6px 10px;
+            border-radius: 5px;
             text-decoration: none;
-            border-radius: 6px;
+            font-size: 12px;
         }
     </style>
+
 </head>
 
 <body>
 
-    <h1>Panel de Reclamos</h1>
+    <div class="header">
 
-    <table>
+        <div class="title">
+            Panel de Reclamos
+        </div>
+
+        <a class="logout" href="/admin/logout">
+            Cerrar sesión
+        </a>
+
+    </div>
+
+
+    <div class="stats">
+        Reclamos totales: {{ reclamos|length }}
+    </div>
+
+
+    <div class="search">
+        <input type="text" id="search" placeholder="Buscar pedido ML..." onkeyup="buscar()">
+    </div>
+
+
+    <table id="tabla">
+
         <tr>
             <th>ID</th>
             <th>Fecha</th>
@@ -63,21 +141,62 @@
         </tr>
 
         {% for r in reclamos %}
+
         <tr>
+
             <td>{{ r.id }}</td>
+
             <td>{{ r.fecha }}</td>
+
             <td>{{ r.pedido_ml }}</td>
+
             <td>{{ r.tipo }}</td>
-            <td class="{{ r.estado }}">{{ r.estado }}</td>
-            <td>
-                {% if r.estado == "pendiente" %}
-                <a class="button" href="/admin/resolver/{{ r.id }}">Marcar Resuelto</a>
-                {% endif %}
+
+            <td class="{{ r.estado }}">
+                {{ r.estado }}
             </td>
+
+            <td>
+
+                {% if r.estado == "pendiente" %}
+
+                <a class="button" href="/admin/resolver/{{ r.id }}">
+                    Marcar resuelto
+                </a>
+
+                {% endif %}
+
+            </td>
+
         </tr>
+
         {% endfor %}
 
     </table>
+
+
+    <script>
+
+        function buscar() {
+
+            let input = document.getElementById("search").value.toLowerCase()
+            let filas = document.querySelectorAll("#tabla tr")
+
+            for (let i = 1; i < filas.length; i++) {
+
+                let pedido = filas[i].cells[2].innerText.toLowerCase()
+
+                if (pedido.includes(input)) {
+                    filas[i].style.display = ""
+                } else {
+                    filas[i].style.display = "none"
+                }
+
+            }
+
+        }
+
+    </script>
 
 </body>
 
