@@ -4,15 +4,13 @@ import os
 
 admin_bp = Blueprint("admin", __name__)
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
-
 
 @admin_bp.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
         password = request.form.get("password")
 
-        if password == ADMIN_PASSWORD:
+        if password == admin_password:
             session["admin_logged"] = True
             return redirect("/admin")
 
