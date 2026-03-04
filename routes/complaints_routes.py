@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, render_template
 from config import Config
 from services.telegram_service import send_telegram, send_photo
-from database import guardar_reclamo
+from services.ml_service import get_order, reply_to_buyer
+from services.email_service import send_email
+from database import guardar_reclamo, obtener_reclamo
 
 complaint_bp = Blueprint("complaint", __name__)
 
@@ -13,20 +15,27 @@ def form():
 
 @complaint_bp.route("/complaint", methods=["POST"])
 def complaint():
-    data = request.json
-
-    print("=== NUEVO RECLAMO ===")
-    print("Data recibida:", data)
-    print("Secret recibido:", request.headers.get("X-Secret-Key"))
+    data = request.form
 
     if request.headers.get("X-Secret-Key") != Config.SECRET_KEY:
         return jsonify({"error": "Unauthorized"}), 403
 
+    order_id = data.get("pedido_ml")
+
+    order = get_order(order_id)
+
+    if order:
+        buyer = order.get("buyer", {})
+        print("Comprador:", buyer)
+
     try:
-        reclamo_id = guardar_reclamo(data)
+        reply_to_buyer(
+            order_id, "Hola 👋 Recibimos tu reclamo y ya estamos revisando el caso."
+        )
     except Exception as e:
-        print("ERROR DB:", e)
-        reclamo_id = "N/A"
+        print("Error respondiendo en ML:", e)
+
+    reclamo_id = guardar_reclamo(data)
 
     print("Enviando Telegram...")
 
@@ -45,8 +54,46 @@ def complaint():
 
     send_telegram(message)
 
-    fotos = data.get("fotos", [])
+    fotos = request.files.getlist("fotos")
     for foto in fotos:
         send_photo(foto)
 
+    try:
+        send_email(
+            data.get("contacto"),
+            data.get("nombre"),
+            data.get("pedido_ml"),
+            data.get("producto"),
+            reclamo_id,
+        )
+        print("Email enviado correctamente")
+    except Exception as e:
+        print("Error enviando email:", e)
+
     return jsonify({"status": "ok"}), 200
+
+
+@complaint_bp.route("/order/<order_id>")
+def order_info(order_id):
+
+    order = get_order(order_id)
+
+    if not order:
+        return {"error": "Orden no encontrada"}, 404
+
+    item = order["order_items"][0]["item"]
+
+    buyer = order["buyer"]
+
+    return {"producto": item["title"], "comprador": buyer["nickname"]}
+
+
+@complaint_bp.route("/reclamo/<int:reclamo_id>")
+def ver_reclamo(reclamo_id):
+
+    reclamo = obtener_reclamo(reclamo_id)
+
+    if not reclamo:
+        return "Reclamo no encontrado", 404
+
+    return render_template("reclamo.html", reclamo=reclamo)

@@ -87,3 +87,18 @@ def marcar_resuelto(reclamo_id):
 
     conn.commit()
     conn.close()
+
+
+def obtener_reclamo(reclamo_id):
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM reclamos WHERE id = ?", (reclamo_id,))
+
+    reclamo = cursor.fetchone()
+
+    conn.close()
+
+    return reclamo

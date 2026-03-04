@@ -14,7 +14,12 @@ def send_telegram(message):
     print("Telegram response:", r.text)
 
 
-def send_photo(photo_url):
+def send_photo(photo):
+
     url = f"https://api.telegram.org/bot{Config.TELEGRAM_TOKEN}/sendPhoto"
-    payload = {"chat_id": Config.CHAT_ID, "photo": photo_url}
-    requests.post(url, json=payload, timeout=5)
+
+    files = {"photo": photo}
+
+    data = {"chat_id": Config.CHAT_ID}
+
+    requests.post(url, data=data, files=files)

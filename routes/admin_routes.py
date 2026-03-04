@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, request, session
-from database import obtener_reclamos, marcar_resuelto
+from database import obtener_reclamos, marcar_resuelto, obtener_reclamo
+from services.email_service import send_email_resuelto
 import os
 
 admin_bp = Blueprint("admin", __name__)
@@ -44,8 +45,22 @@ def admin_panel():
 
 @admin_bp.route("/admin/resolver/<int:reclamo_id>")
 def resolver_reclamo(reclamo_id):
+
     if not session.get("admin_logged"):
         return redirect("/admin/login")
 
+    reclamo = obtener_reclamo(reclamo_id)
+
     marcar_resuelto(reclamo_id)
+
+    try:
+
+        send_email_resuelto(reclamo["contacto"], reclamo["nombre"], reclamo_id)
+
+        print("Email de resolución enviado")
+
+    except Exception as e:
+
+        print("Error enviando email:", e)
+
     return redirect("/admin")

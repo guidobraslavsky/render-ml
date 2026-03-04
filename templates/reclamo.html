@@ -1,0 +1,68 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Estado del reclamo</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .estado {
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="card">
+
+        <h2>Estado de tu reclamo</h2>
+
+        <p><b>Número de caso:</b> {{ reclamo.id }}</p>
+
+        <p><b>Pedido ML:</b> {{ reclamo.pedido_ml }}</p>
+
+        <p><b>Producto:</b> {{ reclamo.producto }}</p>
+
+        <p><b>Tipo:</b> {{ reclamo.tipo }}</p>
+
+        <p><b>Descripción:</b> {{ reclamo.descripcion }}</p>
+
+        <p class="estado">
+
+            Estado:
+            {% if reclamo.estado == "resuelto" %}
+            🟢 Resuelto
+            {% else %}
+            🟡 En revisión
+            {% endif %}
+
+        </p>
+
+    </div>
+
+</body>
+
+</html>
+```

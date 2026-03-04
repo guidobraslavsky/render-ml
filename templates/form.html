@@ -1,119 +1,231 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reclamos Hogarela</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  display: flex;
-  justify-content: center;
-  padding: 30px;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.container {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
+    <title>Formulario de Reclamo</title>
 
-h1 {
-  text-align: center;
-  margin-bottom: 25px;
-}
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+            background: #f4f6f9;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-input, select, textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-}
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 420px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
 
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
 
-button:hover {
-  background: #1e4ed8;
-}
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
 
-.success {
-  display: none;
-  text-align: center;
-  margin-top: 15px;
-  color: green;
-}
-</style>
+        textarea {
+            resize: vertical;
+            height: 90px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+
+        .preview {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .preview img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+    </style>
+
 </head>
 
 <body>
-<div class="container">
-<h1>Formulario de Reclamo</h1>
 
-<form id="reclamoForm">
-<input type="text" name="nombre" placeholder="Nombre completo" required>
-<input type="text" name="pedido_ml" placeholder="Número de Pedido ML" required>
-<input type="text" name="contacto" placeholder="Teléfono o Email" required>
-<input type="text" name="producto" placeholder="Producto comprado" required>
+    <div class="card">
 
-<select name="tipo" required>
-<option value="">Seleccionar tipo de problema</option>
-<option value="Producto dañado">Producto dañado</option>
-<option value="Faltante">Faltante</option>
-<option value="Error de envío">Error de envío</option>
-<option value="Otro">Otro</option>
-</select>
+        <h2>Formulario de Reclamo</h2>
 
-<textarea name="descripcion" rows="4" placeholder="Describí el problema" required></textarea>
+        <form id="reclamoForm">
 
-<button type="submit">Enviar Reclamo</button>
+            <input type="text" id="pedido_ml" name="pedido_ml" placeholder="Número de pedido Mercado Libre" required
+                onblur="buscarPedido()">
 
-<div class="success" id="successMsg">
-Reclamo enviado correctamente ✅
-</div>
+            <input type="text" name="nombre" placeholder="Nombre" required>
 
-</form>
-</div>
+            <input type="email" name="contacto" placeholder="Email o contacto" required>
 
-<script>
-document.getElementById("reclamoForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
+            <input type="text" name="producto" placeholder="Producto" required>
 
-  const formData = new FormData(this);
-  const data = Object.fromEntries(formData.entries());
+            <select name="tipo" required>
 
-  const response = await fetch("/complaint", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Secret-Key": "ml_reclamos_2026_seguro_847291"
-    },
-    body: JSON.stringify(data)
-  });
+                <option value="">Tipo de reclamo</option>
+                <option value="Faltante">Faltante</option>
+                <option value="Producto incorrecto">Producto incorrecto</option>
+                <option value="Producto dañado">Producto dañado</option>
+                <option value="Otro">Otro</option>
 
-  if (response.ok) {
-    document.getElementById("successMsg").style.display = "block";
-    this.reset();
-  } else {
-    alert("Error al enviar el reclamo");
-  }
-});
-</script>
+            </select>
+
+            <textarea name="descripcion" placeholder="Descripción del problema" required></textarea>
+
+            <input type="file" name="fotos" id="fotos" multiple accept="image/*" onchange="previewFotos(event)">
+
+            <div class="preview" id="preview"></div>
+
+            <button type="submit">
+                Enviar reclamo
+            </button>
+
+        </form>
+
+        <div id="successMsg" class="success">
+            Reclamo enviado correctamente ✔
+        </div>
+
+    </div>
+
+    <script>
+
+        async function buscarPedido() {
+
+            const pedido = document.getElementById("pedido_ml").value
+
+            if (!pedido) return
+
+            try {
+
+                const res = await fetch(`/order/${pedido}`)
+                const data = await res.json()
+
+                if (data.producto) {
+                    document.querySelector("[name='producto']").value = data.producto
+                }
+
+                if (data.comprador) {
+                    document.querySelector("[name='nombre']").value = data.comprador
+                }
+
+            } catch (e) {
+
+                console.log("Pedido no encontrado")
+
+            }
+
+        }
+
+
+        function previewFotos(event) {
+
+            const preview = document.getElementById("preview")
+            preview.innerHTML = ""
+
+            const files = event.target.files
+
+            for (let i = 0; i < files.length; i++) {
+
+                const img = document.createElement("img")
+                img.src = URL.createObjectURL(files[i])
+
+                preview.appendChild(img)
+
+            }
+
+        }
+
+
+        document.getElementById("reclamoForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault()
+
+            const formData = new FormData(this)
+
+            try {
+
+                const response = await fetch("/complaint", {
+
+                    method: "POST",
+
+                    headers: {
+                        "X-Secret-Key": "ml_reclamos_2026_seguro_847291"
+                    },
+
+                    body: formData
+
+                })
+
+                if (response.ok) {
+
+                    document.getElementById("successMsg").style.display = "block"
+                    this.reset()
+                    document.getElementById("preview").innerHTML = ""
+
+                } else {
+
+                    alert("Error al enviar reclamo")
+
+                }
+
+            } catch (err) {
+
+                alert("No se pudo conectar con el servidor")
+
+            }
+
+        })
+
+    </script>
 
 </body>
+
 </html>
+```
