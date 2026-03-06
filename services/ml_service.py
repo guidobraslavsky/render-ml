@@ -2,7 +2,7 @@ import requests
 import os
 from services.ml_token_service import get_access_token
 from services.qr_service import generar_qr
-from services.zpl_sticker_service import generar_sticker, combinar_etiqueta
+from services.zpl_sticker_service import generar_sticker
 from services.print_agent import imprimir_zpl
 
 
