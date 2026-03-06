@@ -14,6 +14,11 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 init_db()
 
 
+@app.route("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.route("/print_queue")
 def print_queue():
 

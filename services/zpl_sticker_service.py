@@ -3,7 +3,7 @@ import segno
 BASE_URL = "https://render-ml-automation.onrender.com"
 
 
-def generar_qr_ascii(order_id):
+def generar_sticker(order_id):
 
     url = f"{BASE_URL}/form?order={order_id}"
 
@@ -11,55 +11,41 @@ def generar_qr_ascii(order_id):
 
     matrix = qr.matrix
 
-    zpl = "^XA\n"
+    zpl_qr = ""
 
-    y = 20
+    size = 6  # tamaño del módulo del QR
+    start_x = 50
+    start_y = 100
+
+    y = start_y
 
     for row in matrix:
 
-        x = 20
+        x = start_x
 
         for col in row:
 
             if col:
-                zpl += f"^FO{x},{y}^GB6,6,6^FS\n"
+                zpl_qr += f"^FO{x},{y}^GB{size},{size},{size}^FS\n"
 
-            x += 6
+            x += size
 
-        y += 6
-
-    zpl += "^XZ"
-
-    return zpl
-
-
-def generar_sticker(order_id):
-
-    qr = generar_qr_ascii(order_id)
+        y += size
 
     zpl = f"""
 ^XA
-^FO50,30^A0N,30,30^FDSoporte pedido ML^FS
-{qr}
-^FO50,250^A0N,25,25^FDEscanea si hay problema^FS
-^XZ
-"""
+^PW800
+^LL1200
 
-    return zpl
+^FO50,40
+^A0N,40,40
+^FDSoporte Pedido ML^FS
 
+{zpl_qr}
 
-def combinar_etiqueta(label_zpl, qr_zpl):
-
-    label_zpl = label_zpl.replace("^XZ", "")
-
-    zpl = f"""
-{label_zpl}
-
-^FO50,700
-^A0N,30,30
-^FDSoporte post venta^FS
-
-{qr_zpl}
+^FO50,750
+^A0N,35,35
+^FDEscanea si hay un problema^FS
 
 ^XZ
 """
