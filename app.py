@@ -44,6 +44,20 @@ def mark_printed():
     return {"status": "ok"}
 
 
+@app.route("/ml_webhook", methods=["POST"])
+def ml_webhook():
+
+    data = request.json
+
+    order_id = data.get("resource")
+
+    print("Nueva orden ML:", order_id)
+
+    database.insert_order(order_id)
+
+    return {"status": "ok"}
+
+
 app.register_blueprint(admin_bp)
 app.register_blueprint(complaint_bp)
 

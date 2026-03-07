@@ -2,39 +2,38 @@ import requests
 import time
 import subprocess
 
+from services.ml_service import get_recent_orders
+import database
 from services.zpl_sticker_service import generar_sticker
 
 SERVER_URL = "https://render-ml-automation.onrender.com"
-
-PRINTER_NAME = "XP410B"
 
 printed_cache = set()
 
 print("🚀 Print Agent iniciado")
 
 
-def imprimir_zpl(zpl):
+def check_ml_orders():
 
-    try:
+    orders = get_recent_orders()
 
-        subprocess.run(
-            ["lpr", "-P", PRINTER_NAME, "-o", "raw"], input=zpl.encode(), check=True
-        )
+    for order in orders:
 
-        print("Etiqueta enviada a impresora")
+        order_id = str(order["order_id"])
 
-    except Exception as e:
+        if database.order_exists(order_id):
+            continue
 
-        print("Error imprimiendo:", e)
+        print("Nueva orden detectada:", order_id)
+
+        database.insert_order(order_id)
 
 
 def check_print_queue():
 
     try:
 
-        print("Consultando servidor...")
-
-        r = requests.get(f"{SERVER_URL}/print_queue", timeout=5)
+        r = requests.get(f"{SERVER_URL}/print_queue", timeout=30)
 
         if r.status_code != 200:
             print("Error servidor:", r.status_code)
@@ -52,22 +51,15 @@ def check_print_queue():
 
             order_id = order["order_id"]
 
-            if order_id in printed_cache:
-                continue
-
             print("🖨 Imprimiendo orden:", order_id)
 
             zpl = generar_sticker(order_id)
 
             imprimir_zpl(zpl)
 
-            printed_cache.add(order_id)
-
             requests.post(
-                f"{SERVER_URL}/mark_printed", json={"order_id": order_id}, timeout=5
+                f"{SERVER_URL}/mark_printed", json={"order_id": order_id}, timeout=30
             )
-
-            print("Orden marcada como impresa")
 
     except Exception as e:
 
@@ -76,6 +68,8 @@ def check_print_queue():
 
 while True:
 
+    check_ml_orders()
+
     check_print_queue()
 
-    time.sleep(5)
+    time.sleep(15)

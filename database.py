@@ -150,3 +150,34 @@ def mark_order_printed(order_id):
 
     conn.commit()
     conn.close()
+
+
+def insert_order(order_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO reclamos (pedido_ml, printed)
+        VALUES (?,0)
+        """,
+        (order_id,),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def order_exists(order_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM reclamos WHERE pedido_ml = ?", (order_id,))
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+    return result is not None

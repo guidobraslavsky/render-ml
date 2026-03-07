@@ -1,18 +1,12 @@
 import requests
 import os
+
 from services.ml_token_service import get_access_token
-from services.qr_service import generar_qr
 from services.zpl_sticker_service import generar_sticker
-from services.print_agent import imprimir_zpl
+from services.print_service import imprimir_zpl
 
 
 ML_TOKEN = os.environ.get("ML_ACCESS_TOKEN")
-
-
-import requests
-
-from services.ml_token_service import get_access_token
-from services.zpl_sticker_service import generar_sticker
 
 
 def get_order(order_id):
@@ -25,25 +19,36 @@ def get_order(order_id):
 
     r = requests.get(url, headers=headers)
 
-    if r.status_code == 200:
-
-        order = r.json()
-
-        print("Orden recibida:", order_id)
-
-        zpl = generar_sticker(order_id)
-
-        imprimir_zpl(zpl)
-
-        print("Sticker enviado a impresora")
-
-        return order
-
-    else:
-
+    if r.status_code != 200:
         print("Error obteniendo orden:", r.status_code)
+        return None
 
-    return None
+    return r.json()
+
+
+def get_recent_orders():
+
+    token = get_access_token()
+
+    url = "https://api.mercadolibre.com/orders/search?seller=me&sort=date_desc"
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    r = requests.get(url, headers=headers)
+
+    if r.status_code != 200:
+        print("Error obteniendo órdenes:", r.status_code)
+        return []
+
+    data = r.json()
+
+    orders = []
+
+    for o in data["results"]:
+
+        orders.append({"order_id": o["id"], "shipping_id": o["shipping"]["id"]})
+
+    return orders
 
 
 def get_shipping_label(shipment_id):
@@ -56,19 +61,43 @@ def get_shipping_label(shipment_id):
 
     r = requests.get(url, headers=headers)
 
-    if r.status_code == 200:
-        return r.text
+    if r.status_code != 200:
+        print("Error descargando etiqueta:", r.status_code)
+        return None
 
-    return None
+    return r.text
+
+
+def combinar_etiqueta(label_zpl, qr_zpl):
+
+    label_zpl = label_zpl.replace("^XZ", "")
+
+    return f"""
+{label_zpl}
+
+^FO50,650
+^A0N,30,30
+^FDSoporte post venta^FS
+
+{qr_zpl}
+
+^XZ
+"""
 
 
 def imprimir_etiqueta_con_qr(order_id):
 
     order = get_order(order_id)
 
+    if not order:
+        return
+
     shipment_id = order["shipping"]["id"]
 
     label_zpl = get_shipping_label(shipment_id)
+
+    if not label_zpl:
+        return
 
     qr_zpl = generar_sticker(order_id)
 
