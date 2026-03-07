@@ -1,44 +1,50 @@
-import time
 import requests
+import time
 import os
+import database
 
-ML_CLIENT_ID = os.environ.get("ML_CLIENT_ID")
-ML_CLIENT_SECRET = os.environ.get("ML_CLIENT_SECRET")
-ML_REFRESH_TOKEN = os.environ.get("ML_REFRESH_TOKEN")
-
-ACCESS_TOKEN = None
-EXPIRES_AT = 0
+TOKEN_URL = "https://api.mercadolibre.com/oauth/token"
 
 
 def get_access_token():
-    global ACCESS_TOKEN, EXPIRES_AT
 
-    # si el token sigue válido
-    if ACCESS_TOKEN and time.time() < EXPIRES_AT - 300:
-        return ACCESS_TOKEN
+    token_data = database.get_token()
 
-    print("🔄 Renovando access token ML...")
+    if token_data:
 
-    url = "https://api.mercadolibre.com/oauth/token"
+        access_token = token_data["access_token"]
+        expires_at = token_data["expires_at"]
 
-    data = {
+        if time.time() < expires_at:
+            return access_token
+
+    return refresh_access_token()
+
+
+def refresh_access_token():
+
+    refresh_token = os.environ.get("ML_REFRESH_TOKEN")
+
+    payload = {
         "grant_type": "refresh_token",
-        "client_id": ML_CLIENT_ID,
-        "client_secret": ML_CLIENT_SECRET,
-        "refresh_token": ML_REFRESH_TOKEN,
+        "client_id": os.environ.get("ML_CLIENT_ID"),
+        "client_secret": os.environ.get("ML_CLIENT_SECRET"),
+        "refresh_token": refresh_token,
     }
 
-    r = requests.post(url, data=data)
+    r = requests.post(TOKEN_URL, data=payload)
 
     if r.status_code != 200:
-        print("❌ Error ML token:", r.text)
         raise Exception("Error obteniendo access token")
 
-    token_info = r.json()
+    data = r.json()
 
-    ACCESS_TOKEN = token_info["access_token"]
-    EXPIRES_AT = time.time() + token_info["expires_in"]
+    access_token = data["access_token"]
+    refresh_token = data["refresh_token"]
+    expires_in = data["expires_in"]
 
-    print("✅ Token ML actualizado")
+    expires_at = time.time() + expires_in - 60
 
-    return ACCESS_TOKEN
+    database.save_token(access_token, refresh_token, expires_at)
+
+    return access_token

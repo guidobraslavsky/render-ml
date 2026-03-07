@@ -181,3 +181,36 @@ def order_exists(order_id):
     conn.close()
 
     return result is not None
+
+
+def get_token():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT access_token, refresh_token, expires_at FROM tokens WHERE id = 1"
+    )
+
+    row = cursor.fetchone()
+
+    conn.close()
+
+    return row
+
+
+def save_token(access_token, refresh_token, expires_at):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO tokens (id, access_token, refresh_token, expires_at)
+        VALUES (1, ?, ?, ?)
+        """,
+        (access_token, refresh_token, expires_at),
+    )
+
+    conn.commit()
+    conn.close()

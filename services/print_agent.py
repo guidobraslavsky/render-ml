@@ -5,6 +5,7 @@ import subprocess
 from services.ml_service import get_recent_orders
 import database
 from services.zpl_sticker_service import generar_sticker
+from services.print_service import imprimir_zpl
 
 SERVER_URL = "https://render-ml-automation.onrender.com"
 
